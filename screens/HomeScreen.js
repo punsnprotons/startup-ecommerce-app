@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Image, SafeAreaView, ScrollView, Pressable, TextInput } from 'react-native'
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 import { AntDesign, Feather, Ionicons, MaterialIcons, Entypo } from '@expo/vector-icons'
 import { SliderBox } from 'react-native-image-slider-box'
 import { useNavigation } from "@react-navigation/native";
@@ -9,6 +9,12 @@ import ProductItem from '../components /ProductItem'
 import DropDownPicker from 'react-native-dropdown-picker'
 import { useSelector } from 'react-redux'
 import { BottomModal, SlideAnimation, ModalContent } from 'react-native-modals'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import jwt_decode from 'jwt-decode';
+
+import { UserType } from '../UserContext'
+
+
 
 
 
@@ -183,6 +189,11 @@ const HomeScreen = () => {
         },
     ];
     const navigation = useNavigation();
+
+    const [selectedAddress,setSelectedAddress] = useState('')
+
+    const { userId, setUserId } = useContext(UserType)
+    const [addresses, setAddresses] = useState([])
     const [products, setProducts] = useState([])
     const [open, setOpen] = useState(false)
     const [category, setCategory] = useState('jewelery')
@@ -192,6 +203,8 @@ const HomeScreen = () => {
         { label: 'Electronics', value: 'electronics' },
         { label: "women's clothing", value: "women's clothing" }
     ])
+
+    //console.log(selectedAddress)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -208,11 +221,40 @@ const HomeScreen = () => {
     const onGenderOpen = useCallback(() => {
         setCompanyOpen(false)
     }, [])
-    console.log('products', products)
+    //console.log('products', products)
 
     const cart = useSelector((state) => state.cart.cart)
 
     const [modalVisible, setModalVisible] = useState(false)
+
+    useEffect(() => {
+        if (userId) {
+            fetchAddresses()
+        }
+    }, [userId, modalVisible])
+
+    const fetchAddresses = async () => {
+        try {
+            const response = await axios.get(`http://localhost:8000/addresses/${userId}`)
+            const { addresses } = response.data
+            setAddresses(addresses)
+        } catch (error) {
+            console.log('error', error)
+        }
+    }
+
+    useEffect(() => {
+        const fetchUser = async () => {
+
+            const token = await AsyncStorage.getItem("authToken");
+            const decodedToken = jwt_decode(token);
+            const userId = decodedToken.userId;
+            setUserId(userId);
+
+        };
+
+        fetchUser();
+    }, []);
 
     return (
         <>
@@ -230,7 +272,7 @@ const HomeScreen = () => {
                         <Ionicons name="location-outline" size={24} color="black" />
 
                         <Pressable>
-                            <Text style={{ fontSize: 13, fontWeight: '500' }}>Deliver to DHA - Karachi  74550</Text>
+                           {selectedAddress?(<Text>Deliver to {selectedAddress?.name} - {selectedAddress?.street}</Text>):(<Text style={{fontSize:13,fontWeight:'500'}}>Add a address</Text>)}
                         </Pressable>
 
                         <MaterialIcons name="keyboard-arrow-down" size={24} color="black" />
@@ -345,12 +387,25 @@ const HomeScreen = () => {
                         <Text style={{ fontSize: 16, fontWeight: 500 }}>Choose your location</Text>
                         <Text style={{ marginTop: 5, fontSize: 16, color: 'gray' }}>Select a delivery location to see a product availibility and delivery options</Text>
                     </View>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {/*already added addresses*/}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{marginTop:10}}>
+                        {addresses?.map((item, index) => (
+                            <Pressable onPress={()=>setSelectedAddress(item)} key={index} style={{width:140,height:140,borderColor:'#D0D0D0',borderWidth:1,padding:10,justifyContent:'center',alignItems:'center',gap:3,marginRight:15, backgroundColor:selectedAddress === item ? 'lightgray':'white'}}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                                    <Text style={{ fontSize: 13, fontWeight: '500' }}>{item?.name}</Text>
+                                    <Entypo name="location-pin" size={24} color='red' />
+                                </View>
+                                <Text numberOfLines={1} style={{width:130,fontSize:13,textAlign:'center'}}>{item?.houseNo},{item?.landmark}</Text>
+                                <Text numberOfLines={1} style={{width:130,fontSize:13,textAlign:'center'}}>{item?.street}</Text>
+                                <Text numberOfLines={1} style={{width:130,fontSize:13,textAlign:'center'}}>Karachi,Pak</Text>
+
+
+                                
+                            </Pressable>
+                        ))}
                         <Pressable onPress={() => {
                             setModalVisible(false)
                             navigation.navigate('Address')
-                        }} style={{ width: 140, height: 140, borderColor: "#D0D0D0", marginTop: 10, borderWidth: 1, padding: 10, justifyContent: 'center', alignItems: 'center' }}>
+                        }} style={{ width: 140, height: 140, borderColor: "#D0D0D0",borderWidth: 1, padding: 10, justifyContent: 'center', alignItems: 'center' }}>
                             <Text style={{ textAlign: 'center', color: '#0066b2', fontWeight: '500' }}>Add an addresss or a pick-up point</Text>
                         </Pressable>
                     </ScrollView>

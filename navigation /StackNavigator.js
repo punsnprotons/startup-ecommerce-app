@@ -10,6 +10,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProductInfoScreen from '../screens/ProductInfoScreen'
 import AddAddressScreen from '../screens/AddAddressScreen'
 import AddressScreen from '../screens/AddressScreen'
+import CartScreen from '../screens/CartScreen'
+import ProfileScreen from '../screens/ProfileScreen'
 
 
 const StackNavigator = () => {
@@ -36,7 +38,7 @@ const StackNavigator = () => {
 
       <Tab.Screen
         name="Profile"
-        component={HomeScreen}
+        component={ProfileScreen}
         options={
           {
             tabBarLabel: "Profile",
@@ -49,7 +51,7 @@ const StackNavigator = () => {
 
       <Tab.Screen
         name="Cart"
-        component={HomeScreen}
+        component={CartScreen}
         options={
           {
             tabBarLabel: "Cart",
