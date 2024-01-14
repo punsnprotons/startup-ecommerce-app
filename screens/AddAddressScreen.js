@@ -1,9 +1,10 @@
 import { StyleSheet, Text, View,Pressable,TextInput,ScrollView} from 'react-native'
 import { AntDesign, Feather, Ionicons, MaterialIcons, Entypo } from '@expo/vector-icons'
 import React,{useState,useEffect,useContext} from 'react'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import axios from 'axios'
 import { UserType } from '../UserContext'
+import { useCallback } from 'react'
 
 
 const AddAddressScreen = () => {
@@ -25,6 +26,13 @@ const AddAddressScreen = () => {
             console.log('error',error)
         }
     }
+
+    // refresh the addressses when the component comes into focus
+    useFocusEffect(
+        useCallback(()=>{
+            fetchAddresses()
+        },[])
+    )
     console.log("addresses",addresses)
     return (
         <ScrollView showsVerticalScrollIndivator={false} style={{ marginTop: 50 }}>
