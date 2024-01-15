@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
         flex:1, 
         backgroundColor:'white',
         alignItems:'center',
+        marginTop:50,
     },
     loginbox:{
         flexDirection:'row',
